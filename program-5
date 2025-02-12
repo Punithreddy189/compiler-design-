@@ -1,0 +1,47 @@
+Design a lexical Analyzer to find the number of whitespaces and newline characters using C.
+
+#include <stdio.h>
+
+void countWhitespaceAndNewlines(char *code, int *whitespaceCount, int *newlineCount);
+
+int main() {
+    char code[] = "int main() {\n    int a = 10;  \n    printf(\"Hello, World!\\n\");\n    return 0; \n}";
+
+    int whitespaceCount = 0;
+    int newlineCount = 0;
+
+    printf("Original Code:\n%s\n\n", code);
+
+    countWhitespaceAndNewlines(code, &whitespaceCount, &newlineCount);
+
+    printf("Number of Whitespaces: %d\n", whitespaceCount);
+    printf("Number of Newline Characters: %d\n", newlineCount);
+
+    return 0;
+}
+
+void countWhitespaceAndNewlines(char *code, int *whitespaceCount, int *newlineCount) {
+    while (*code) {
+        if (*code == ' ' || *code == '\t') {
+            (*whitespaceCount)++;
+        } else if (*code == '\n') {
+            (*newlineCount)++;
+        }
+        code++;
+    }
+}
+OUTPUT:
+
+Original Code:
+int main() {
+    int a = 10;  
+    printf("Hello, World!\n");
+    return 0; 
+}
+
+output:
+Number of Whitespaces: 22
+Number of Newline Characters: 4
+
+
+
