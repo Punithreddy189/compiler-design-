@@ -1,0 +1,99 @@
+Write a C program to find FIRST( ) - predictive parser for the given grammar
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAX 100
+#define MAX_PRODUCTIONS 50
+#define MAX_SYMBOLS 10
+
+char productions[MAX_PRODUCTIONS][MAX_SYMBOLS];
+char first[MAX][MAX_SYMBOLS];
+int numProductions;
+
+void initializeFirst() {
+    for (int i = 0; i < MAX; i++) {
+        first[i][0] = '\0'; // Initialize FIRST sets
+    }
+}
+
+int isTerminal(char c) {
+    return (c >= 'a' && c <= 'z'); // Assuming lowercase letters are terminals
+}
+
+void addToFirst(char nonTerminal, char terminal) {
+    int index = nonTerminal - 'A'; // Assuming non-terminals are uppercase letters
+    if (strchr(first[index], terminal) == NULL) {
+        strncat(first[index], &terminal, 1); // Add terminal to FIRST set
+    }
+}
+
+void computeFirst(char nonTerminal) {
+    int index = nonTerminal - 'A';
+    for (int i = 0; i < numProductions; i++) {
+        if (productions[i][0] == nonTerminal) {
+            int j = 2; // Start after non-terminal and arrow
+            while (productions[i][j] != '\0') {
+                if (isTerminal(productions[i][j])) {
+                    addToFirst(nonTerminal, productions[i][j]);
+                    break; // Stop after adding the first terminal
+                } else {
+                    // If it's a non-terminal, compute its FIRST set
+                    computeFirst(productions[i][j]);
+                    // Add FIRST set of the non-terminal to the current non-terminal's FIRST set
+                    for (int k = 0; first[productions[i][j] - 'A'][k] != '\0'; k++) {
+                        addToFirst(nonTerminal, first[productions[i][j] - 'A'][k]);
+                    }
+                    // If the FIRST set contains epsilon (represented by '$'), continue
+                    if (strchr(first[productions[i][j] - 'A'], '$') == NULL) {
+                        break;
+                    }
+                }
+                j++;
+            }
+        }
+    }
+}
+
+void printFirstSets() {
+    for (int i = 0; i < MAX; i++) {
+        if (first[i][0] != '\0') {
+            printf("FIRST(%c) = { ", 'A' + i);
+            for (int j = 0; first[i][j] != '\0'; j++) {
+                printf("%c ", first[i][j]);
+            }
+            printf("}\n");
+        }
+    }
+}
+
+int main() {
+    printf("Enter the number of productions: ");
+    scanf("%d", &numProductions);
+    getchar(); // Consume newline character
+
+    printf("Enter the productions (e.g., A->aB | A->$):\n");
+    for (int i = 0; i < numProductions; i++) {
+        fgets(productions[i], MAX_SYMBOLS, stdin);
+        productions[i][strcspn(productions[i], "\n")] = 0; // Remove newline
+    }
+
+    initializeFirst();
+
+    for (int i = 0; i < numProductions; i++) {
+        computeFirst(productions[i][0]); // Compute FIRST for each non-terminal
+    }
+
+    printFirstSets();
+
+    return 0;
+}
+OUTPUT:
+Enter the number of productions: 2
+Enter the productions (e.g., A->aB | A->$):
+
+A->aB
+
+
+=== Code Execution Successful ===
