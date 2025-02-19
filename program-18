@@ -1,0 +1,95 @@
+Write a C program to implement the back end of the compiler
+CODE:
+#include <stdio.h>
+#include <string.h>
+
+// Structure to represent a three-address code instruction
+typedef struct {
+    char op;        // Operator (+, -, *, /, =)
+    char arg1[10];  // First operand
+    char arg2[10];  // Second operand
+    char result[10]; // Result operand
+} ThreeAddressCode;
+
+// Function to generate assembly code from three-address code
+void generateAssembly(ThreeAddressCode code[], int count) {
+    printf("Generated Assembly Code:\n");
+    printf("------------------------\n");
+
+    for (int i = 0; i < count; i++) {
+        switch (code[i].op) {
+            case '+':
+                printf("MOV R0, %s\n", code[i].arg1);
+                printf("ADD R0, %s\n", code[i].arg2);
+                printf("MOV %s, R0\n", code[i].result);
+                break;
+            case '-':
+                printf("MOV R0, %s\n", code[i].arg1);
+                printf("SUB R0, %s\n", code[i].arg2);
+                printf("MOV %s, R0\n", code[i].result);
+                break;
+            case '*':
+                printf("MOV R0, %s\n", code[i].arg1);
+                printf("MUL R0, %s\n", code[i].arg2);
+                printf("MOV %s, R0\n", code[i].result);
+                break;
+            case '/':
+                printf("MOV R0, %s\n", code[i].arg1);
+                printf("DIV R0, %s\n", code[i].arg2);
+                printf("MOV %s, R0\n", code[i].result);
+                break;
+            case '=':
+                printf("MOV %s, %s\n", code[i].result, code[i].arg1);
+                break;
+            default:
+                printf("Unsupported operation: %c\n", code[i].op);
+                break;
+        }
+        printf("\n");
+    }
+}
+
+int main() {
+    // Example three-address code sequence
+    ThreeAddressCode code[] = {
+        {'=', "5", "", "a"},      // a = 5
+        {'=', "3", "", "b"},      // b = 3
+        {'+', "a", "b", "t1"},    // t1 = a + b
+        {'*', "t1", "2", "t2"},   // t2 = t1 * 2
+        {'-', "t2", "b", "t3"},   // t3 = t2 - b
+        {'/', "t3", "a", "t4"}    // t4 = t3 / a
+    };
+
+    int count = sizeof(code) / sizeof(code[0]);
+
+    // Generate assembly code
+    generateAssembly(code, count);
+
+    return 0;
+}
+OUTPUT:
+Generated Assembly Code:
+------------------------
+MOV a, 5
+
+MOV b, 3
+
+MOV R0, a
+ADD R0, b
+MOV t1, R0
+
+MOV R0, t1
+MUL R0, 2
+MOV t2, R0
+
+MOV R0, t2
+SUB R0, b
+MOV t3, R0
+
+MOV R0, t3
+DIV R0, a
+MOV t4, R0
+
+
+
+
