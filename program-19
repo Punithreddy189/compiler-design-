@@ -1,0 +1,65 @@
+Write a C program to compute LEADING( ) – operator precedence parser for the given grammar
+CODE:
+#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
+
+#define MAX_RULES 10
+#define MAX_SYMBOLS 10
+
+// Structure to represent a production rule
+typedef struct {
+    char lhs;  // Left-hand side non-terminal
+    char rhs[MAX_SYMBOLS]; // Right-hand side symbols
+} ProductionRule;
+
+// Function to compute LEADING() for a non-terminal
+void computeLeading(char nonTerminal, ProductionRule rules[], int ruleCount, char leadingSet[]) {
+    for (int i = 0; i < ruleCount; i++) {
+        if (rules[i].lhs == nonTerminal) {
+            char firstSymbol = rules[i].rhs[0];
+            if (isupper(firstSymbol)) {
+                // If the first symbol is a non-terminal, recursively compute its LEADING()
+                computeLeading(firstSymbol, rules, ruleCount, leadingSet);
+            } else {
+                // If the first symbol is a terminal, add it to the LEADING() set
+                if (strchr(leadingSet, firstSymbol) == NULL) {
+                    strncat(leadingSet, &firstSymbol, 1);
+                }
+            }
+        }
+    }
+}
+
+int main() {
+    // Define the grammar rules
+    ProductionRule rules[MAX_RULES] = {
+        {'E', "E+T"},
+        {'E', "T"},
+        {'T', "T*F"},
+        {'T', "F"},
+        {'F', "(E)"},
+        {'F', "id"}
+    };
+    int ruleCount = 6;
+
+    // Non-terminal for which to compute LEADING()
+    char nonTerminal = 'E';
+
+    // Array to store the LEADING() set
+    char leadingSet[MAX_SYMBOLS] = "";
+
+    // Compute LEADING() for the given non-terminal
+    computeLeading(nonTerminal, rules, ruleCount, leadingSet);
+
+    // Print the LEADING() set
+    printf("LEADING(%c) = { ", nonTerminal);
+    for (int i = 0; i < strlen(leadingSet); i++) {
+        printf("%c ", leadingSet[i]);
+    }
+    printf("}\n");
+
+    return 0;
+}
+OUTPUT:
+LEADING(E) = { ( id }
