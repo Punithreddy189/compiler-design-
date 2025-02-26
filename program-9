@@ -1,0 +1,78 @@
+Implement a C program to eliminate left factoring from a given CFG.
+
+#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
+
+#define MAX_RULES 10
+#define MAX_LENGTH 50
+
+// Structure to store a production rule
+typedef struct {
+char lhs;
+char rhs[MAX_RULES][MAX_LENGTH];
+int rhs_count;
+} Production;
+
+// Function to eliminate left recursion
+void eliminate_left_recursion(Production *rules, int *rule_count) {
+for (int i = 0; i < *rule_count; i++) {
+char non_terminal = rules[i].lhs;
+char temp_rhs[MAX_RULES][MAX_LENGTH];
+int temp_rhs_count = 0;
+int left_recursive_index = -1;
+
+// Identify if the production has left recursion
+for (int j = 0; j < rules[i].rhs_count; j++) {
+if (rules[i].rhs[j][0] == non_terminal) {
+left_recursive_index = j;
+} else {
+strcpy(temp_rhs[temp_rhs_count], rules[i].rhs[j]);
+temp_rhs_count++;
+}
+}
+
+if (left_recursive_index != -1) {
+// Create new production for eliminating left recursion
+char new_non_terminal = non_terminal + '1'; // E.g., A -> A' for A
+printf("Eliminating left recursion for: %c\n", non_terminal);
+printf("%c -> ", non_terminal);
+
+// Non-recursive production
+for (int j = 0; j < temp_rhs_count; j++) {
+printf("%s | ", temp_rhs[j]);
+}
+printf("%c'\n", non_terminal);
+
+printf("%c' -> ", new_non_terminal);
+
+// Recursive production
+for (int j = 0; j < rules[i].rhs_count; j++) {
+if (rules[i].rhs[j][0] == non_terminal) {
+printf("%s%c' | ", rules[i].rhs[j] + 1, non_terminal);
+}
+}
+printf("ε\n");
+
+// Create new rule for the modified grammar
+rules[*rule_count].lhs = new_non_terminal;
+for (int j = 0; j < temp_rhs_count; j++) {
+strcpy(rules[*rule_count].rhs[j], temp_rhs[j]);
+}
+rules[*rule_count].rhs_count = temp_rhs_count;
+(*rule_count)++;
+} else {
+printf("%c -> ", non_terminal);
+for (int j = 0; j < rules[i].rhs_count; j++) {
+printf("%s | ", rules[i].rhs[j]);
+}
+
+printf("\n");
+}
+OUTPUT:
+Eliminating left recursion for: A
+A -> b | 
+A' -> aA' | ε
+Eliminating left recursion for: B
+B -> d | 
+B' -> cB' | ε
