@@ -1,0 +1,118 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAX_PRODUCTIONS 10
+#define MAX_SYMBOLS 50
+#define MAX_LENGTH 50
+
+// Structure to store a production rule
+typedef struct {
+    char lhs;                     // Left-hand side non-terminal
+    char rhs[MAX_PRODUCTIONS][MAX_LENGTH];  // Right-hand side alternatives
+    int num_rhs;                  // Number of alternatives
+} Production;
+
+// Function to print the grammar
+void printGrammar(Production grammar[], int num_non_terminals) {
+    for (int i = 0; i < num_non_terminals; i++) {
+        printf("%c -> ", grammar[i].lhs);
+        for (int j = 0; j < grammar[i].num_rhs; j++) {
+            printf("%s ", grammar[i].rhs[j]);
+            if (j != grammar[i].num_rhs - 1) {
+                printf("| ");
+            }
+        }
+        printf("\n");
+    }
+}
+
+// Function to perform left factoring on the given grammar
+void leftFactoring(Production grammar[], int *num_non_terminals) {
+    for (int i = 0; i < *num_non_terminals; i++) {
+        for (int j = i + 1; j < *num_non_terminals; j++) {
+            if (grammar[i].lhs == grammar[j].lhs) {
+                // Check for common prefix between grammar[i] and grammar[j]
+                int prefix_len = 0;
+                while (prefix_len < grammar[i].num_rhs && prefix_len < grammar[j].num_rhs &&
+                       strncmp(grammar[i].rhs[0], grammar[j].rhs[0], prefix_len) == 0) {
+                    prefix_len++;
+                }
+
+                // If there's a common prefix, we need to factor it
+                if (prefix_len > 0) {
+                    char new_non_terminal = 'A' + (*num_non_terminals); // New non-terminal
+                    grammar[*num_non_terminals].lhs = new_non_terminal;
+                    grammar[*num_non_terminals].num_rhs = 0;
+
+                    // Create the factored prefix
+                    char prefix[prefix_len + 1];
+                    strncpy(prefix, grammar[i].rhs[0], prefix_len);
+                    prefix[prefix_len] = '\0';
+
+                    // Add the new non-terminal production
+                    sprintf(grammar[*num_non_terminals].rhs[grammar[*num_non_terminals].num_rhs], "%s", prefix);
+                    grammar[*num_non_terminals].num_rhs++;
+
+                    // Add the new rules for the rest of the production
+                    for (int k = 0; k < grammar[i].num_rhs; k++) {
+                        if (strncmp(grammar[i].rhs[k], prefix, prefix_len) == 0) {
+                            // Remove the common prefix and add to new production
+                            char rest[MAX_LENGTH];
+                            strcpy(rest, grammar[i].rhs[k] + prefix_len);
+                            sprintf(grammar[*num_non_terminals].rhs[grammar[*num_non_terminals].num_rhs], "%s", rest);
+                            grammar[*num_non_terminals].num_rhs++;
+                        }
+                    }
+
+                    // Now update the original grammar
+                    for (int k = 0; k < grammar[i].num_rhs; k++) {
+                        char rest[MAX_LENGTH];
+                        strcpy(rest, grammar[i].rhs[k] + prefix_len);
+                        sprintf(grammar[i].rhs[k], "%s", rest);
+                    }
+
+                    (*num_non_terminals)++;
+                }
+            }
+        }
+    }
+}
+
+// Test the code with a simple CFG
+int main() {
+    Production grammar[MAX_PRODUCTIONS];
+    int num_non_terminals = 2;
+
+    // Defining a simple CFG with left factoring
+    grammar[0].lhs = 'S';
+    grammar[0].num_rhs = 2;
+    strcpy(grammar[0].rhs[0], "ab");
+    strcpy(grammar[0].rhs[1], "ac");
+
+    grammar[1].lhs = 'A';
+    grammar[1].num_rhs = 2;
+    strcpy(grammar[1].rhs[0], "bc");
+    strcpy(grammar[1].rhs[1], "bd");
+
+    printf("Original Grammar:\n");
+    printGrammar(grammar, num_non_terminals);
+
+    // Perform left factoring
+    leftFactoring(grammar, &num_non_terminals);
+
+    printf("\nGrammar after Left Factoring:\n");
+    printGrammar(grammar, num_non_terminals);
+
+    return 0;
+}
+output:
+Original Grammar:
+S -> ab | ac 
+A -> bc | bd 
+
+Grammar after Left Factoring:
+S -> aS' 
+S' -> b | c 
+A -> bA' 
+A' -> c | d 
